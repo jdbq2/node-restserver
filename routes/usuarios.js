@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { check } = require("express-validator");
-const Role = require("../models/role");
+
 const {
     usuariosGet,
     usuariosPut,
@@ -9,25 +9,37 @@ const {
     usuariosPatch,
 } = require("../controllers/usuarios");
 const validarCampos = require("../middlewares/validar-campos");
+const {
+    isValidRole,
+    emailExists,
+    userExists,
+} = require("../helpers/db-validators");
 
 const router = Router();
 
 router.get("/", usuariosGet);
 router.patch("/", usuariosPatch);
-router.put("/:id", usuariosPut);
+router.put(
+    "/:id",
+    [
+        check("rol").custom(isValidRole),
+        check("id").isMongoId(),
+        check("id").custom(userExists),
+        check("nombre", "El nombre es obligatorio").not().isEmpty(),
+        check("password", "El password debe ser de minimo 6 letras").isLength({
+            min: 6,
+        }),
+        validarCampos,
+    ],
+    usuariosPut
+);
 router.post(
     "/",
     [
-        check("correo", "El correo no es valido").isEmail(),
         // check("rol", "No es un rol valido").isIn(["ADMIN_ROLE", "USER_ROLE"]),
-        check("rol").custom(async (rol = "") => {
-            const existeRol = await Role.findOne({ rol });
-            if (!existeRol) {
-                throw new Error(
-                    `El rol: ${rol}, no esta registrado en la base de datos`
-                );
-            }
-        }),
+        check("rol").custom(isValidRole),
+        check("correo", "El correo no es valido").isEmail(),
+        check("correo").custom(emailExists),
         check("nombre", "El nombre es obligatorio").not().isEmpty(),
         check("password", "El password debe ser de minimo 6 letras").isLength({
             min: 6,
@@ -36,6 +48,12 @@ router.post(
     ],
     usuariosPost
 );
-router.delete("/", usuariosDelete);
+router.delete(
+    "/:id",
+    [check("id").isMongoId(), check("id").custom(userExists), validarCampos],
+    usuariosDelete
+);
+
+//62b37c197b0c3b35a802204b
 
 module.exports = router;

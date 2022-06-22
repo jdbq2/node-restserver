@@ -17,7 +17,7 @@ const UsuarioSchema = Schema({
     img: {
         type: String,
     },
-    role: {
+    rol: {
         type: String,
         require: true,
         emun: ["ADMIN_ROLE", "USER_ROLE"],
@@ -31,5 +31,11 @@ const UsuarioSchema = Schema({
         default: false,
     },
 });
+
+//sobreescribimos el metodo para que el JSon que devuelve el schema no tenga ni la contraseña ni la version
+UsuarioSchema.methods.toJSON = function () {
+    const { __v, password, ...usuario } = this.toObject();
+    return usuario;
+};
 
 module.exports = model("Usuario", UsuarioSchema);
