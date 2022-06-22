@@ -1,4 +1,6 @@
 const { response } = require("express");
+const Usuario = require("../models/usuario");
+const bcryptjs = require("bcryptjs");
 
 const usuariosGet = (req, res = response) => {
     //manejo de query params
@@ -11,11 +13,24 @@ const usuariosGet = (req, res = response) => {
 };
 const usuariosPost = async (req, res = response) => {
     //extraer el contenido del body
-    const { nombre, edad } = req.body;
+    const { nombre, correo, password, rol } = req.body;
+    //creamos la instancia del modelo de Mongo
+    const usuario = new Usuario({ nombre, correo, password, rol });
+    //verificar si correo existe
+    const existeEmail = await Usuario.findOne({ correo });
+    if (existeEmail) {
+        return res.status(400).json({
+            msg: "El correo ya esta registrado",
+        });
+    }
+    //encriptar la contraseña
+    const salt = bcryptjs.genSaltSync(10);
+    usuario.password = bcryptjs.hashSync(password, salt);
+    //Crear usuario en la base de datos
+    await usuario.save();
     res.json({
         msg: "postApi - Controlador",
-        nombre,
-        edad,
+        usuario,
     });
 };
 const usuariosPut = (req, res = response) => {
