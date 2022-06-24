@@ -57,10 +57,6 @@ const usuariosPut = async (req, res = response) => {
 const usuariosDelete = async (req, res = response) => {
     //manejo de parametro
     const { id } = req.params;
-
-    //borrar fisicamente el registro
-    //const usuario = await Usuario.findByIdAndDelete(id);
-
     const usuario = await Usuario.findByIdAndUpdate(id, { estado: false });
 
     res.json({
@@ -74,6 +70,7 @@ const usuariosPatch = (req, res = response) => {
         msg: "patchApi - Controlador",
     });
 };
+
 module.exports = {
     usuariosGet,
     usuariosPost,
