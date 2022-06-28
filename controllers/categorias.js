@@ -2,15 +2,42 @@ const { request, response, json } = require("express");
 const Categoria = require("../models/categoria");
 
 const obtenerCategorias = async (req = request, res = response) => {
-    return res.json({
-        msg: "categorias get OK",
+    //manejo de query params
+    const { desde = 0, limite = 5 } = req.query;
+
+    //hacemos la peticion a la BD con un query de solo categorias activas
+    const [total_categorias_activas, categorias] = await Promise.all([
+        Categoria.countDocuments({ estado: true }),
+        Categoria.find({ estado: true })
+            .populate("usuario", "nombre")
+            .limit(Number(limite))
+            .skip(Number(desde)),
+    ]);
+
+    res.json({
+        total_categorias_activas,
+        categorias,
     });
 };
+
 const obtenerCategoriaId = async (req = request, res = response) => {
-    return res.json({
-        msg: "categoria get OK",
-    });
+    const id = req.params.id;
+    try {
+        const categoria = await Categoria.findById(id).populate("usuario", [
+            "nombre",
+            "rol",
+        ]);
+        return res.json({
+            categoria,
+        });
+    } catch (error) {
+        res.status(500).json({
+            msg: "Error durante el proceso de la peticion",
+            error,
+        });
+    }
 };
+
 const crearCategoria = async (req = request, res = response) => {
     const nombre = req.body.nombre.toUpperCase();
     const categoriaDB = await Categoria.findOne({ nombre });
@@ -36,14 +63,32 @@ const crearCategoria = async (req = request, res = response) => {
         console.log(error);
     }
 };
+
 const actualizarCategoria = async (req = request, res = response) => {
-    return res.json({
-        msg: "categorias put OK",
-    });
+    const { id } = req.params;
+    const nombre = req.body.nombre.toUpperCase();
+    const usuario = req.usuario._id;
+    try {
+        await Categoria.findByIdAndUpdate(id, { nombre, usuario });
+        return res.json({
+            nombre,
+            usuario,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            msg: "Error al actualizar la categoria",
+            error,
+        });
+    }
 };
+
 const borrarCategoria = async (req = request, res = response) => {
-    return res.json({
-        msg: "categorias delete OK",
+    //manejo de parametro
+    const { id } = req.params;
+    const categoria = await Categoria.findByIdAndUpdate(id, { estado: false });
+
+    res.json({
+        categoria,
     });
 };
 

@@ -9,6 +9,8 @@ class Server {
         this.usuariosPath = "/api/usuarios";
         this.authPath = "/api/auth";
         this.categoriasPath = "/api/categorias";
+        this.productosPath = "/api/productos";
+        this.buscarPath = "/api/buscar";
 
         //Conectar a base de datos
         this.conectarDB();
@@ -26,6 +28,8 @@ class Server {
         this.app.use(this.authPath, require("../routes/auth"));
         this.app.use(this.usuariosPath, require("../routes/usuarios"));
         this.app.use(this.categoriasPath, require("../routes/categorias"));
+        this.app.use(this.productosPath, require("../routes/productos"));
+        this.app.use(this.buscarPath, require("../routes/buscar"));
     }
     listen() {
         this.app.listen(this.port);

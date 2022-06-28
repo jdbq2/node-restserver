@@ -26,9 +26,9 @@ const validarJWT = async (req = request, res = response, next) => {
         req.usuario = usuario;
         next();
     } catch (error) {
-        console.log(error);
         res.status(401).json({
             msg: "error al validar la autorizacion",
+            error,
         });
     }
 };
